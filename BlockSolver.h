@@ -10,9 +10,9 @@ double Phi(Vector3 v, Vector3Int size) {
 }
 
 double Analytical(Vector3 v, Vector3Int size, float t) {
-    double alpha_t = M_PI * sqrt(Dot(Vector3(1, 1, 1), ToVector3(size * size)));
+    double alpha_t = M_PI * sqrt(Dot(Vector3(4, 1, 1), ToVector3(size * size)));
 
-    return sin(M_PI / size.x * v.x) * sin(M_PI / size.y * v.y) * sin(M_PI / size.z * v.z) * cos(alpha_t * t);
+    return sin(M_PI / size.x * v.x) * sin(M_PI / size.y * v.y) * sin(M_PI / size.z * v.z) * cos(alpha_t * t + 2 * M_PI);
 }
 
 struct Neighbour {
@@ -68,9 +68,11 @@ class BlockSolver {
         
         buffer.resize(Mat(0).Size().y * Mat(0).Size().z);
 
+        int i = 0;
+
         for (int z = 0; z < Mat(0).Size().z; z++) {
             for (int y = 0; y < Mat(0).Size().y; y++) {
-                buffer.push_back(Mat(0)(x, y, z));
+                buffer[i++] = Mat(0)(x, y, z);
             }
         }
 
@@ -87,20 +89,97 @@ class BlockSolver {
         }
     }
 
+    public: void InitWithIndices() {
+        int i = 0;
+        for (int x = 0; x < Mat(-1).Size().x; x++) {
+            for (int z = 0; z < Mat(-1).Size().z; z++) {
+                for (int y = 0; y < Mat(-1).Size().y; y++) {
+                    Mat(-1)(x, y, z) = i++;
+                }
+            }
+        }
+
+        RotateMatrixBuffers();
+    } 
+
+    public: void Print() {
+        for (int x = 0; x < Mat(0).Size().x; x++) {
+            for (int z = 0; z < Mat(0).Size().z; z++) {
+                for (int y = 0; y < Mat(0).Size().y; y++) {
+                    cout << x << "," << y << "," << z << " " << Mat(0)(x, y, z) << endl;
+                }
+            }
+        }
+    } 
+
+    static const int BOT_BORDER = 0;
+    static const int TOP_BORDER = 1;
+
     public: void UpdateEdges() {
+            vector<MPI_Request> statuses;
+            statuses.resize(2);
+
+            vector<vector<double> > incoming_buffers;
+            incoming_buffers.resize(2);
+
+            cout << "Bottom" << endl;
+
+            MPI_Request fake;
 
             {
-                AssembleBufferX(0);
-                
+                vector<double> outgoing_buffer = AssembleBufferX(0);
+             
+                cout << "Assembling" << endl;
+   
                 int rank = neighbours[hash(Vector3Int(-1, 0, 0))].rank;
 
-               // MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
-               //              int dest, int sendtag,
-               //              void *recvbuf, int recvcount, MPI_Datatype recvtype,
-               //              int source, int recvtag, MPI_Comm comm, MPI_Status * status)
+                cout << "Resizing" << endl;
+   
+                incoming_buffers[0].resize(outgoing_buffer.size());
+
+                cout << "Sending " << rank << endl;
+   
+                MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &fake);
+                
+                cout << "Recieving" << endl;
+   
+                MPI_Irecv(incoming_buffers[0].data(), incoming_buffers[0].size(), MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &statuses[0]);
             }
 
-            AssembleBufferX(-1);
+            cout << "Top" << endl;
+
+            {
+                cout << "Assembling" << endl;
+                
+                vector<double> outgoing_buffer = AssembleBufferX(transform.size.x - 1);
+   
+                int rank = neighbours[hash(Vector3Int(1, 0, 0))].rank;
+             
+                cout << "Resizing" << endl;
+   
+                incoming_buffers[1].resize(outgoing_buffer.size());
+                
+                cout << "Sending " << rank << endl;
+   
+                MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &fake);
+                                
+                cout << "Recieving" << endl;
+   
+                MPI_Irecv(incoming_buffers[1].data(), incoming_buffers[1].size(), MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &statuses[1]);
+            }
+            
+            cout << "Waiting" << endl;
+
+            for (int i = 0; i < statuses.size(); i++) {
+                MPI_Wait(&statuses[i], NULL);
+            }
+
+            cout << "Filling" << endl;
+
+            FillMatrixFromBufferX(incoming_buffers[0], -1);
+            FillMatrixFromBufferX(incoming_buffers[1], transform.size.x);
+            
+            cout << "Ending" << endl;
 
             //MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
             //    int dest, int sendtag,

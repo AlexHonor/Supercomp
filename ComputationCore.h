@@ -77,6 +77,15 @@ class ComputationCore {
 
         BlockSolver block(transform, GetNeighbours(cell_coord), conf);
 
+
+        //block.InitWithIndices();
+
+        //block.Print();
+
+        //block.UpdateEdges();
+
+        //block.Print();
+
         block.Init();
 
         for (;block.n_step < 20; block.n_step++) {
