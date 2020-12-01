@@ -44,7 +44,10 @@ class ComputationCore {
 
             neighbour_ranks[hash(shifts[i])].shift = shifts[i];
             neighbour_ranks[hash(shifts[i])].rank = neighbour;
+            ss << "Neigh " << shifts[i] << " " << RankToCell(neighbour) << endl;
         }
+
+        //cout << ss.str() << endl;
 
         return neighbour_ranks;
     }
@@ -52,7 +55,10 @@ class ComputationCore {
 
     public: void Run() {
         MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+        // @TODO Refactor
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        conf.rank = rank;
 
         conf.proc_num = Vector3Int::Zeros();
 
@@ -60,10 +66,14 @@ class ComputationCore {
 
         Vector3Int cell_coord = RankToCell(rank);
 
-        cout << "Process " << rank << "(" << world_size << ") started" << endl 
-             << "Coord in grid: { " << cell_coord.x << ", " << cell_coord.y << ", " << cell_coord.z << "}" << endl;
+        if (conf.rank == 0) {
+            cout << "Macro grid " << conf.proc_num.x << " - " << conf.proc_num.y << " - " << conf.proc_num.z << endl; 
+        }
 
-        Vector3Int block_size = Vector3Int::Ones() * conf.cells_num / conf.proc_num;
+       // cout << "Process " << rank << "(" << world_size << ") started" << endl 
+       //      << "Coord in grid: { " << cell_coord.x << ", " << cell_coord.y << ", " << cell_coord.z << "}" << endl;
+
+        Vector3Int block_size = (Vector3Int::Ones() * conf.cells_num + conf.proc_num - Vector3Int::Ones()) / conf.proc_num;
 
         Vector3 block_step_size = Vector3::Ones() * (conf.high_border - conf.low_border) * ToVector3(block_size) / (Vector3::Ones() * conf.cells_num);
 

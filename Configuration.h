@@ -11,6 +11,8 @@ class Configuration {
 
     public: double grid_step;
 
+    public: int rank;
+
     public: Configuration(INIReader config) {
         cells_num = config.GetInteger("Computation", "CellsNumber", 32);
         
