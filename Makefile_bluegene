@@ -1,7 +1,7 @@
 INC=-Iexternal
-MPI_CC  = mpicxx
+MPI_CC  = mpixlcxx
 LDFLAGS = -lm
-CFLAGS  = -Ofast
+CFLAGS  = -O3
 
 all: task2
 
