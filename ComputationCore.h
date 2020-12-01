@@ -10,9 +10,53 @@ class ComputationCore {
 
     public: ComputationCore(INIReader _config) : conf(_config) {}
 
+
+    // @TODO move to block solver?
+    // wrong neighbours
+    // how to perform sending and recieving
+    private: map<int, Neighbour> GetNeighbours(Vector3Int block_position) {
+        map<int, Neighbour> neighbour_ranks;
+
+        stringstream ss;
+        
+        vector<Vector3Int> shifts;
+        shifts.push_back(Vector3Int(-1, 0, 0));
+        shifts.push_back(Vector3Int(+1, 0, 0));
+        shifts.push_back(Vector3Int(0, -1, 0));
+        shifts.push_back(Vector3Int(0, +1, 0));
+        shifts.push_back(Vector3Int(0, 0, -1));
+        shifts.push_back(Vector3Int(0, 0, +1));
+
+        ss << "Cell " << block_position << endl;
+
+        for (int i = 0; i < shifts.size(); i++) {
+            Vector3Int neighbour_position = block_position + shifts[i];
+            int neighbour = CellToRank(neighbour_position);
+            
+            if (neighbour_position.x == -1) {
+                neighbour = CellToRank(Vector3Int(conf.proc_num.x - 1, neighbour_position.y, neighbour_position.z));
+            } else if (neighbour_position.x == conf.proc_num.x) {
+                neighbour = CellToRank(Vector3Int(0, neighbour_position.y, neighbour_position.z));
+            } else if (neighbour_position.y == -1 || neighbour_position.y == conf.proc_num.y ||
+                neighbour_position.z == -1 || neighbour_position.z == conf.proc_num.z) {
+                neighbour = -1;
+            }
+
+            neighbour_ranks[hash(shifts[i])].shift = shifts[i];
+            neighbour_ranks[hash(shifts[i])].rank = neighbour;
+        }
+
+        return neighbour_ranks;
+    }
+ 
+
     public: void Run() {
         MPI_Comm_size(MPI_COMM_WORLD, &world_size);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+        conf.proc_num = Vector3Int::Zeros();
+
+        MPI_Dims_create(world_size, 3, (int*)&conf.proc_num);
 
         Vector3Int cell_coord = RankToCell(rank);
 
@@ -31,11 +75,13 @@ class ComputationCore {
                             bot,
                             top);
 
-        BlockSolver block(transform, Vector3Int(-1, -1, -1), Vector3Int(-1, -1, -1), conf);
+        BlockSolver block(transform, GetNeighbours(cell_coord), conf);
 
         block.Init();
 
-        block.Print();
+        for (;block.n_step < 20; block.n_step++) {
+            block.Iterate();
+        }
     }
 
     Vector3Int RankToCell(int rank) {

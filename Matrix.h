@@ -7,8 +7,13 @@ class Matrix {
     private: Vector3Int size;
     private: vector<double> data;
 
-    public: Matrix(Vector3Int _size) : size(_size + Vector3Int::Ones() * 2) {
-        data.resize((_size.x) * (_size.y) * (_size.z));
+    public: Matrix(Vector3Int _size) {
+        size = _size + Vector3Int::Ones() * 2;
+        data.resize(size.x * size.y * size.z);
+
+        for (int i = 0; i < data.size(); i++) {
+            data[i] = 0;
+        }
     }
 
     public: Vector3Int Size() {
@@ -20,7 +25,11 @@ class Matrix {
                _position.x < size.x && _position.y < size.y && _position.z < size.z;
     }
 
-    public: double& get(Vector3Int _position) {
+    public: double& operator()(int x, int y, int z) {
+        return operator()(Vector3Int(x, y, z));
+    }
+
+    public: double& operator()(Vector3Int _position) {
         return data[Index(_position)];
     }
 

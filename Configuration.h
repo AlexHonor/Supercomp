@@ -18,11 +18,12 @@ class Configuration {
         proc_num.y = config.GetInteger("Computation", "ProcNumY", 1);
         proc_num.z = config.GetInteger("Computation", "ProcNumZ", 1);
         
-        time_step   = config.GetReal("Computation", "TimeStep", 0.1);
         high_border = config.GetReal("Computation", "HighBorder", 1.0);
         low_border  = config.GetReal("Computation", "LowBorder", 0.0);
     
         grid_step = (high_border - low_border) / cells_num;
+    
+        time_step   = grid_step * grid_step / 2.0;
     }
 };
 

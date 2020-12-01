@@ -74,6 +74,11 @@ struct TVector3 {
 typedef TVector3<int32_t> Vector3Int;
 typedef TVector3<double> Vector3;
 
+template<typename T>
+T Dot(TVector3<T> a, TVector3<T> b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
 Vector3 ToVector3(Vector3Int v) {
     return Vector3(v.x, v.y, v.z);
 }
@@ -99,11 +104,23 @@ ostream& operator<<(ostream &os, const Vector3 &v)
     return os;
 }
 
+int hash(int x, int y, int z) {
+    return (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+}
+
+int hash(Vector3Int v) {
+    return hash(v.x, v.y, v.z);
+}
+
 struct Transform {
     public: Vector3Int position, size;
     public: Vector3 bot, top;
 
     public: Transform(Vector3Int p, Vector3Int s, Vector3 b, Vector3 t) : position(p), size(s), bot(b), top(t) {}
+
+    public: Vector3 LocalToWorld(int x, int y, int z) {
+        return LocalToWorld(Vector3Int(x, y, z));
+    }
 
     public: Vector3 LocalToWorld(Vector3Int local_position) {
         return ToVector3(position + local_position) / ToVector3(size) * (top - bot);
