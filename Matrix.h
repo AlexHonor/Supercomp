@@ -5,7 +5,7 @@
 
 class Matrix {
     private: Vector3Int size;
-    private: vector<double> data;
+    public: vector<double> data;
 
     public: Matrix(Vector3Int _size) {
         size = _size + Vector3Int::Ones() * 2;

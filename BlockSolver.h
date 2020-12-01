@@ -40,7 +40,6 @@ class BlockSolver {
                 data.push_back(Matrix(_transform.size));
                 data.push_back(Matrix(_transform.size));
                 data.push_back(Matrix(_transform.size));
-                
 
                 // @TODO make one pointer
                 current = 2;
@@ -48,14 +47,9 @@ class BlockSolver {
                 prevprev = 0;
 
                 n_step = 0;
-
-                stringstream ss;
-
-                ss << "pos: " << transform.position << " size: " << transform.size << " bot: " << transform.bot << " top: " << transform.top << endl;
-                cout << ss.str() << endl;
             }
 
-    private: Matrix& Mat(int step) {
+    public: Matrix& Mat(int step) {
         int index[] = {
             current,
             prev,
@@ -118,7 +112,7 @@ class BlockSolver {
 
     public: void FillMatrixFromBufferY(vector<double> buffer, int y) {
         int i = 0;
-
+        
         for (int z = 0; z < Mat(0).Size().z; z++) {
             for (int x = 0; x < Mat(0).Size().x; x++) {
                 Mat(0)(x, y, z) = buffer[i++];
@@ -180,103 +174,130 @@ class BlockSolver {
 
     public: void UpdateEdges() {
             vector<MPI_Request> statuses;
-            statuses.resize(6);
-
-            vector<vector<double> > incoming_buffers;
+            
+            vector< vector<double> > incoming_buffers;
             incoming_buffers.resize(6);
-
-            cout << "Bottom" << endl;
 
             MPI_Request fake;
 
             int rank = neighbours[hash(Vector3Int(-1, 0, 0))].rank;
 
-            if (rank > 0) {
+            if (rank >= 0) {
                 vector<double> outgoing_buffer = AssembleBufferX(0);
 
                 incoming_buffers[0].resize(outgoing_buffer.size());
    
                 MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &fake);
+                MPI_Request_free(&fake);
    
-                MPI_Irecv(incoming_buffers[0].data(), incoming_buffers[0].size(), MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &statuses[0]);
-            }
+                statuses.push_back(MPI_REQUEST_NULL);
 
+                MPI_Irecv(incoming_buffers[0].data(), incoming_buffers[0].size(), MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &(*(--statuses.end())));
+            }
 
             rank = neighbours[hash(Vector3Int(1, 0, 0))].rank;
 
-            if (rank > 0) {
+            if (rank >= 0) {
                 vector<double> outgoing_buffer = AssembleBufferX(transform.size.x - 1);
    
                 incoming_buffers[1].resize(outgoing_buffer.size());
    
                 MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &fake);
-   
-                MPI_Irecv(incoming_buffers[1].data(), incoming_buffers[1].size(), MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &statuses[1]);
+                MPI_Request_free(&fake);
+
+                statuses.push_back(MPI_REQUEST_NULL);
+
+                MPI_Irecv(incoming_buffers[1].data(), incoming_buffers[1].size(), MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &(*(--statuses.end())));
             }
-            
-             
+ 
             rank = neighbours[hash(Vector3Int(0, -1, 0))].rank;
 
-            if (rank > 0) {
+            if (rank >= 0) {
                 vector<double> outgoing_buffer = AssembleBufferY(0);
    
                 incoming_buffers[2].resize(outgoing_buffer.size());
    
                 MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &fake);
-   
-                MPI_Irecv(incoming_buffers[2].data(), incoming_buffers[2].size(), MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &statuses[2]);
+                MPI_Request_free(&fake);
+
+                statuses.push_back(MPI_REQUEST_NULL);
+
+                MPI_Irecv(incoming_buffers[2].data(), incoming_buffers[2].size(), MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &(*(--statuses.end())));
             }
 
             rank = neighbours[hash(Vector3Int(0, 1, 0))].rank;
 
-            if (rank > 0) {
+            if (rank >= 0) {
                 vector<double> outgoing_buffer = AssembleBufferY(transform.size.y - 1);
    
                 incoming_buffers[3].resize(outgoing_buffer.size());
    
                 MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &fake);
-   
-                MPI_Irecv(incoming_buffers[3].data(), incoming_buffers[3].size(), MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &statuses[3]);
+                MPI_Request_free(&fake);
+
+                statuses.push_back(MPI_REQUEST_NULL);
+
+                MPI_Irecv(incoming_buffers[3].data(), incoming_buffers[3].size(), MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD,  &(*(--statuses.end())));
             }
 
             rank = neighbours[hash(Vector3Int(0, 0, -1))].rank;
 
-            if (rank > 0) {
+            if (rank >= 0) {
                 vector<double> outgoing_buffer = AssembleBufferZ(0);
    
                 incoming_buffers[4].resize(outgoing_buffer.size());
    
                 MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &fake);
-   
-                MPI_Irecv(incoming_buffers[4].data(), incoming_buffers[4].size(), MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &statuses[4]);
+                MPI_Request_free(&fake);
+
+                statuses.push_back(MPI_REQUEST_NULL);
+
+                MPI_Irecv(incoming_buffers[4].data(), incoming_buffers[4].size(), MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD,  &(*(--statuses.end())));
             }
 
             rank = neighbours[hash(Vector3Int(0, 0, 1))].rank;
 
-            if (rank > 0) {
+            if (rank >= 0) {
                 vector<double> outgoing_buffer = AssembleBufferZ(transform.size.z - 1);
    
                 incoming_buffers[5].resize(outgoing_buffer.size());
    
                 MPI_Isend(outgoing_buffer.data()    , outgoing_buffer.size()    , MPI_DOUBLE, rank, TOP_BORDER, MPI_COMM_WORLD, &fake);
+                MPI_Request_free(&fake);
    
-                MPI_Irecv(incoming_buffers[5].data(), incoming_buffers[5].size(), MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD, &statuses[5]);
-            }
+                statuses.push_back(MPI_REQUEST_NULL);
 
+                MPI_Irecv(incoming_buffers[5].data(), incoming_buffers[5].size(), MPI_DOUBLE, rank, BOT_BORDER, MPI_COMM_WORLD,  &(*(--statuses.end())));
+            }
 
             for (int i = 0; i < statuses.size(); i++) {
-                MPI_Wait(&statuses[i], NULL);
+                MPI_Wait(&statuses[i], MPI_STATUS_IGNORE);
             }
 
-            FillMatrixFromBufferX(incoming_buffers[0], -1);
-            FillMatrixFromBufferX(incoming_buffers[1], transform.size.x);
-            
-            FillMatrixFromBufferY(incoming_buffers[2], -1);
-            FillMatrixFromBufferY(incoming_buffers[3], transform.size.y);
-            
-            FillMatrixFromBufferZ(incoming_buffers[4], -1);
-            FillMatrixFromBufferZ(incoming_buffers[5], transform.size.z);
-            
+            if (neighbours[hash(Vector3Int(-1, 0, 0))].rank >= 0) {
+                FillMatrixFromBufferX(incoming_buffers[0], -1);
+            }
+
+            if (neighbours[hash(Vector3Int(1, 0, 0))].rank >= 0) {
+                FillMatrixFromBufferX(incoming_buffers[1], transform.size.x);
+            } 
+
+            if (neighbours[hash(Vector3Int(0, -1, 0))].rank >= 0) {
+                FillMatrixFromBufferY(incoming_buffers[2], -1);
+            } 
+
+            if (neighbours[hash(Vector3Int(0, 1, 0))].rank >= 0) {
+                FillMatrixFromBufferY(incoming_buffers[3], transform.size.y);
+            }
+
+            if (neighbours[hash(Vector3Int(0, 0, -1))].rank >= 0) {
+                FillMatrixFromBufferZ(incoming_buffers[4], -1);
+            }
+
+            if (neighbours[hash(Vector3Int(0, 0, 1))].rank >= 0) {
+                FillMatrixFromBufferZ(incoming_buffers[5], transform.size.z);
+            }            
+
             //MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
             //    int dest, int sendtag,
             //    void *recvbuf, int recvcount, MPI_Datatype recvtype,
@@ -295,10 +316,10 @@ class BlockSolver {
         }
         
         n_step = 0;
-    
-        cout << "Initialized" << endl;
+            
         GetMaxError();
-        //UpdateEdges();
+
+        UpdateEdges();
 
         RotateMatrixBuffers();
 
@@ -325,9 +346,9 @@ class BlockSolver {
                 }
             }
         }
+        
         n_step++;
 
-        cout << "Second initialized" << endl;
         GetMaxError();
     }
 
@@ -340,7 +361,7 @@ class BlockSolver {
         for (int x = 0; x < Mat(0).Size().x; x++) {
             for (int y = 0; y < Mat(0).Size().y; y++) {
                 for (int z = 0; z < Mat(0).Size().z; z++) {
-                    double error = abs(Mat(0)(x, y, z) - Analytical(transform.LocalToWorld(x,y,z), transform.size, n_step * conf.time_step));
+                    double error = fabs(Mat(0)(x, y, z) - Analytical(transform.LocalToWorld(x,y,z), transform.size, n_step * conf.time_step));
                     
                     //cout << Mat(0)(x, y, z) << " " << Analytical(transform.LocalToWorld(x,y,z), transform.size, n_step * conf.time_step) << endl;
                     
@@ -360,7 +381,9 @@ class BlockSolver {
         return max_error;
     }
 
-    public: void Iterate() {
+    public: void Iterate() {                
+        UpdateEdges();
+
         for (int x = 0; x < Mat(1).Size().x; x++) {
             for (int y = 0; y < Mat(1).Size().y; y++) {
                 for (int z = 0; z < Mat(1).Size().z; z++) {
@@ -386,8 +409,18 @@ class BlockSolver {
         }
 
         RotateMatrixBuffers();
-    
+
         GetMaxError();
+    }
+
+    public: void SendResultingMatrix() {
+        if (conf.rank != 0) {
+            MPI_Send(Mat(0).data.data(), Mat(0).data.size(), MPI_DOUBLE, 0, 3, MPI_COMM_WORLD);
+
+            cout << "Rank " << conf.rank << " ended" << endl;
+
+
+        }
     }
 };
 

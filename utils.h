@@ -123,7 +123,11 @@ struct Transform {
     }
 
     public: Vector3 LocalToWorld(Vector3Int local_position) {
-        return ToVector3(position + local_position) / ToVector3(size) * (top - bot);
+        return ToVector3(position + local_position) * (top - bot) / ToVector3(size);
+    }
+
+    public: Vector3Int LocalToWorldIndex(Vector3Int local_position) {
+        return position + local_position;
     }
 };
 
