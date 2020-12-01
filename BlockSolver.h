@@ -314,11 +314,13 @@ class BlockSolver {
                 }
             }
         }
-        
-        n_step = 0;
-            
-        GetMaxError();
 
+        n_step = 0;
+        
+        ZeroBorders();
+        
+        GetMaxError();
+        
         UpdateEdges();
 
         RotateMatrixBuffers();
@@ -347,6 +349,8 @@ class BlockSolver {
             }
         }
 
+        ZeroBorders();
+        
         n_step++;
 
         GetMaxError();
@@ -375,7 +379,10 @@ class BlockSolver {
         MPI_Reduce(&max_error, &max_error_total, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
         if (conf.rank == 0) {
-            cout << "Max error: " << max_error_total << endl;
+            cout << "  {" << endl;
+            cout << "     N: " << n_step + 1 << "," << endl; 
+            cout << "     Error: " << max_error_total << endl;
+            cout << "  }," << endl;
         }
 
         return max_error;
@@ -410,8 +417,30 @@ class BlockSolver {
 
         RotateMatrixBuffers();
 
+        ZeroBorders();
+        
         GetMaxError();
     }
+
+    private: void ZeroBorders() {
+        /*
+        for (int x = 0; x < Mat(0).Size().x; x++) {
+            int y = 0;
+            
+            for (int z = 0; z < Mat(0).Size().z; z++) {
+                Mat(0)(x, y, z) = 0;
+            }
+        }
+        
+        for (int x = 0; x < Mat(0).Size().x; x++) {
+            int z = 0;
+
+            for (int y = 0; y < Mat(0).Size().y; y++) {
+                Mat(0)(x, y, z) = 0;    
+            }
+        }
+        */
+    } 
 
     public: void SendResultingMatrix() {
         if (conf.rank != 0) {

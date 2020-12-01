@@ -68,26 +68,38 @@ class ComputationCore {
     }
 
     public: void Run() {
+        double startTime = MPI_Wtime();
+
         MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
         // @TODO Refactor
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         conf.rank = rank;
+        if (rank == 0) {
+            cout << "{" << endl;
+            cout << "Inputs: {" << endl;
+            
+            cout << "   TotalTime: " << conf.total_time << "," << endl;
+            cout << "   IterationNumber: " << conf.total_steps << "," << endl;
+            cout << "   CellsNumber: " << conf.cells_num << "," << endl;
+            cout << "   HighBorder: " << conf.high_border << "," << endl;
+            cout << "   LowBorder: " << conf.low_border << endl;
+
+            cout << "}," << endl;
+        }
 
         conf.proc_num = Vector3Int::Zeros();
 
         MPI_Dims_create(world_size, 3, (int*)&conf.proc_num);
 
-        if (conf.rank == 0) {
-            cout << "Macro grid " << conf.proc_num.x << " - " << conf.proc_num.y << " - " << conf.proc_num.z << endl; 
-        }
+        //if (conf.rank == 0) {
+        //    cout << "Macro grid " << conf.proc_num.x << " - " << conf.proc_num.y << " - " << conf.proc_num.z << endl; 
+        //}
 
-       // cout << "Process " << rank << "(" << world_size << ") started" << endl 
-       //      << "Coord in grid: { " << cell_coord.x << ", " << cell_coord.y << ", " << cell_coord.z << "}" << endl;
-
+        // cout << "Process " << rank << "(" << world_size << ") started" << endl 
+        //      << "Coord in grid: { " << cell_coord.x << ", " << cell_coord.y << ", " << cell_coord.z << "}" << endl;
 
         BlockSolver block(CreateBlockTransform(rank), GetNeighbours(RankToCell(rank)), conf);
-
 
         //block.InitWithIndices();
 
@@ -97,16 +109,26 @@ class ComputationCore {
 
         //block.Print();
 
+        if (rank == 0) {
+            cout << "Iterations: [" << endl;
+        }
         block.Init();
 
-        for (;block.n_step < 20; block.n_step++) {
+        for (;block.n_step < conf.total_steps; block.n_step++) {
             block.Iterate();
         }
 
         block.SendResultingMatrix();
 
         if (rank == 0) {
+            cout << "]," << endl;
+        }
+
+        if (rank == 0) {
             AssembleResult(block);
+
+            cout << "Time: " << MPI_Wtime() - startTime << endl;
+            cout << "}" << endl;
         }
     }
 
