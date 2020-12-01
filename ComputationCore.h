@@ -99,7 +99,7 @@ class ComputationCore {
 
         block.Init();
 
-        for (;block.n_step < 1; block.n_step++) {
+        for (;block.n_step < 20; block.n_step++) {
             block.Iterate();
         }
 
@@ -111,7 +111,6 @@ class ComputationCore {
     }
 
     Matrix AssembleResult(BlockSolver block) {
-        cout << "1" << endl;
         Matrix result(Vector3Int::Ones() * conf.cells_num);
 
         vector<MPI_Request> statuses;
@@ -161,7 +160,7 @@ class ComputationCore {
         for (int x = 0; x < result.Size().x; x++) {
             for (int y = 0; y < result.Size().y; y++) {
                 for (int z = 0; z < result.Size().z; z++) {
-                    cout << result(x, y, z) << " ";
+                    //cout << result(x, y, z) << " ";
                 }
             }
         }    

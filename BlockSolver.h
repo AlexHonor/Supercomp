@@ -346,7 +346,7 @@ class BlockSolver {
                 }
             }
         }
-        
+
         n_step++;
 
         GetMaxError();
@@ -361,7 +361,7 @@ class BlockSolver {
         for (int x = 0; x < Mat(0).Size().x; x++) {
             for (int y = 0; y < Mat(0).Size().y; y++) {
                 for (int z = 0; z < Mat(0).Size().z; z++) {
-                    double error = fabs(Mat(0)(x, y, z) - Analytical(transform.LocalToWorld(x,y,z), transform.size, n_step * conf.time_step));
+                    double error = fabs(Mat(0)(x, y, z) - Analytical(transform.LocalToWorld(x,y,z), Vector3Int::Ones() * conf.cells_num, n_step * conf.time_step));
                     
                     //cout << Mat(0)(x, y, z) << " " << Analytical(transform.LocalToWorld(x,y,z), transform.size, n_step * conf.time_step) << endl;
                     
@@ -416,10 +416,6 @@ class BlockSolver {
     public: void SendResultingMatrix() {
         if (conf.rank != 0) {
             MPI_Send(Mat(0).data.data(), Mat(0).data.size(), MPI_DOUBLE, 0, 3, MPI_COMM_WORLD);
-
-            cout << "Rank " << conf.rank << " ended" << endl;
-
-
         }
     }
 };
