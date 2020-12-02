@@ -1,6 +1,8 @@
 #ifndef _CONFIGURATION_
 #define _CONFIGURATION_
 
+#include <fstream>
+
 #include "utils.h"
 
 class Configuration {
@@ -14,6 +16,8 @@ class Configuration {
     public: double grid_step;
 
     public: int rank;
+
+    public: static ofstream fout;
 
     public: Configuration(int argc, char **argv) {
         if (argc < 5) {
@@ -29,7 +33,9 @@ class Configuration {
         
         grid_step = (high_border - 0) / cells_num;
     
-        time_step   = total_time / total_steps;
+        time_step = total_time / total_steps;
+    
+        fout.open("results.csv", ofstream::out | ofstream::app);
     }
 };
 

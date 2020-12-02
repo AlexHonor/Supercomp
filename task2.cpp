@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "ComputationCore.h"
 
+ofstream Configuration::fout;
+
 using namespace std;
 
 int main(int argc, char** argv) {

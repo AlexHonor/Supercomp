@@ -379,10 +379,7 @@ class BlockSolver {
         MPI_Reduce(&max_error, &max_error_total, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
         if (conf.rank == 0) {
-            cout << "  {" << endl;
-            cout << "     N: " << n_step + 1 << "," << endl; 
-            cout << "     Error: " << max_error_total << endl;
-            cout << "  }," << endl;
+            conf.fout << max_error_total << ",";
         }
 
         return max_error;

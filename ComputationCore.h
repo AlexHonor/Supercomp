@@ -27,8 +27,6 @@ class ComputationCore {
         shifts.push_back(Vector3Int(0, 0, -1));
         shifts.push_back(Vector3Int(0, 0, +1));
 
-        ss << "Cell " << block_position << endl;
-
         for (int i = 0; i < shifts.size(); i++) {
             Vector3Int neighbour_position = block_position + shifts[i];
             int neighbour = CellToRank(neighbour_position);
@@ -44,7 +42,6 @@ class ComputationCore {
 
             neighbour_ranks[hash(shifts[i])].shift = shifts[i];
             neighbour_ranks[hash(shifts[i])].rank = neighbour;
-            ss << "Neigh " << shifts[i] << " " << RankToCell(neighbour) << endl;
         }
 
         //cout << ss.str() << endl;
@@ -67,6 +64,8 @@ class ComputationCore {
                          bot, top);
     }
 
+    ofstream out;
+
     public: void Run() {
         double startTime = MPI_Wtime();
 
@@ -75,16 +74,24 @@ class ComputationCore {
         // @TODO Refactor
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         conf.rank = rank;
-        if (rank == 0) {
-            cout << "{" << endl;
-            cout << "Inputs: {" << endl;
-            
-            cout << "   TotalTime: " << conf.total_time << "," << endl;
-            cout << "   IterationNumber: " << conf.total_steps << "," << endl;
-            cout << "   CellsNumber: " << conf.cells_num << "," << endl;
-            cout << "   HighBorder: " << conf.high_border << "," << endl;
 
-            cout << "}," << endl;
+        
+        if (rank == 0) {
+            //conf.fout << "TotalTime" << ",";
+            //conf.fout << "IterationNumber" << ",";
+            //conf.fout << "CellsNumber" << ",";
+            //conf.fout << "HighBorder" << ",";
+
+            for (int i = 0; i < conf.total_steps; i++) {
+            //    conf.fout << i << ",";
+            }
+
+            //conf.fout << "TimeSpent" << endl;
+
+            conf.fout << conf.total_time << ",";
+            conf.fout << conf.total_steps << ",";
+            conf.fout << conf.cells_num << ",";
+            conf.fout << conf.high_border << ",";
         }
 
         conf.proc_num = Vector3Int::Zeros();
@@ -108,9 +115,6 @@ class ComputationCore {
 
         //block.Print();
 
-        if (rank == 0) {
-            cout << "Iterations: [" << endl;
-        }
         block.Init();
 
         for (;block.n_step < conf.total_steps; block.n_step++) {
@@ -120,14 +124,9 @@ class ComputationCore {
         block.SendResultingMatrix();
 
         if (rank == 0) {
-            cout << "]," << endl;
-        }
-
-        if (rank == 0) {
             AssembleResult(block);
 
-            cout << "Time: " << MPI_Wtime() - startTime << endl;
-            cout << "}" << endl;
+            conf.fout << MPI_Wtime() - startTime << endl;
         }
     }
 
