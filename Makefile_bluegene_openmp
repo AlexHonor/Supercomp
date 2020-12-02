@@ -1,12 +1,11 @@
 INC=-Iexternal
 MPI_CC  = mpixlcxx_r
-LDFLAGS = -lm
-CFLAGS  = -O3
+CFLAGS = -lm -qsmp=omp -O3
 
 all: task2
 
 task2: task2.cpp *.h
-	$(MPI_CC) $(LDFLAGS) task2.cpp -o task2
+	$(MPI_CC) $(CFLAGS) task2.cpp -o task2 -std=c++98 -pedantic
 
 clean: 
 	rm -f task2

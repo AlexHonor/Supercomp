@@ -8,7 +8,7 @@ class ComputationCore {
     Configuration conf;
     int rank, world_size;
 
-    public: ComputationCore(INIReader _config) : conf(_config) {}
+    public: ComputationCore(int argc, char **argv) : conf(argc, argv) {}
 
 
     // @TODO move to block solver?
@@ -57,7 +57,7 @@ class ComputationCore {
 
         Vector3Int block_size = (Vector3Int::Ones() * conf.cells_num + conf.proc_num - Vector3Int::Ones()) / conf.proc_num;
 
-        Vector3 block_step_size = Vector3::Ones() * (conf.high_border - conf.low_border) * ToVector3(block_size) / (Vector3::Ones() * conf.cells_num);
+        Vector3 block_step_size = Vector3::Ones() * (conf.high_border - 0) * ToVector3(block_size) / (Vector3::Ones() * conf.cells_num);
 
         Vector3 bot = ToVector3(cell_coord) * block_step_size;
         Vector3 top = min(ToVector3(cell_coord + Vector3Int::Ones()) * block_step_size, Vector3::Ones() * conf.high_border); 
@@ -83,7 +83,6 @@ class ComputationCore {
             cout << "   IterationNumber: " << conf.total_steps << "," << endl;
             cout << "   CellsNumber: " << conf.cells_num << "," << endl;
             cout << "   HighBorder: " << conf.high_border << "," << endl;
-            cout << "   LowBorder: " << conf.low_border << endl;
 
             cout << "}," << endl;
         }

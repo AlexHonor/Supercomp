@@ -2,12 +2,11 @@
 #define _CONFIGURATION_
 
 #include "utils.h"
-#include "external/INIReader.h"
 
 class Configuration {
     public: int cells_num;
     public: Vector3Int proc_num;
-    public: double time_step, low_border, high_border;
+    public: double time_step, high_border;
 
     public: int total_steps;
     public: double total_time;
@@ -16,16 +15,19 @@ class Configuration {
 
     public: int rank;
 
-    public: Configuration(INIReader config) {
-        cells_num = config.GetInteger("Computation", "CellsNumber", 32);
+    public: Configuration(int argc, char **argv) {
+        if (argc < 5) {
+            cout << "Provide arguments [CellsNumber] [TotalTime] [IterationNumber] [HighBorder]" << endl;
+
+            exit(-1); 
+        }
+
+        cells_num = atoi(argv[1]);
+        total_time  = atof(argv[2]);
+        total_steps = atoi(argv[3]);
+        high_border = atof(argv[4]);
         
-        total_time  = config.GetReal("Computation", "TotalTime", 1.0);
-        total_steps = config.GetInteger("Computation", "IterationNumber", 20);
-        
-        high_border = config.GetReal("Computation", "HighBorder", 1.0);
-        low_border  = config.GetReal("Computation", "LowBorder", 0.0);
-    
-        grid_step = (high_border - low_border) / cells_num;
+        grid_step = (high_border - 0) / cells_num;
     
         time_step   = total_time / total_steps;
     }
