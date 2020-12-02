@@ -88,6 +88,7 @@ class ComputationCore {
 
             //conf.fout << "TimeSpent" << endl;
 
+            conf.fout << world_size << ",";
             conf.fout << conf.total_time << ",";
             conf.fout << conf.total_steps << ",";
             conf.fout << conf.cells_num << ",";

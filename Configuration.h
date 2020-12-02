@@ -2,6 +2,7 @@
 #define _CONFIGURATION_
 
 #include <fstream>
+#include <cstdlib> 
 
 #include "utils.h"
 
@@ -20,8 +21,8 @@ class Configuration {
     public: static ofstream fout;
 
     public: Configuration(int argc, char **argv) {
-        if (argc < 5) {
-            cout << "Provide arguments [CellsNumber] [TotalTime] [IterationNumber] [HighBorder]" << endl;
+        if (argc < 6) {
+            cout << "Provide arguments [CellsNumber] [TotalTime] [IterationNumber] [HighBorder] [OutCSVFilename]" << endl;
 
             exit(-1); 
         }
@@ -35,7 +36,7 @@ class Configuration {
     
         time_step = total_time / total_steps;
     
-        fout.open("results.csv", ofstream::out | ofstream::app);
+        fout.open(argv[5], ofstream::out | ofstream::app);
     }
 };
 

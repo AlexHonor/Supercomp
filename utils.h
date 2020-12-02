@@ -71,7 +71,7 @@ struct TVector3 {
     }
 };
 
-typedef TVector3<int32_t> Vector3Int;
+typedef TVector3<int> Vector3Int;
 typedef TVector3<double> Vector3;
 
 template<typename T>

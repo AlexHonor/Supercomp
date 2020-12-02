@@ -5,6 +5,8 @@
 #include "Matrix.h"
 #include "Configuration.h"
 
+#include <map>
+
 double Phi(Vector3 v, Vector3Int size) {
     return sin(M_PI / size.x * v.x) * sin(M_PI / size.y * v.y) * sin(M_PI / size.z * v.z);
 }

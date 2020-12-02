@@ -1,15 +1,17 @@
 #!/bin/bash -x
 
-mpicxx task2.cpp -o task2
+mpixlC -O3 -lm -std=c++98 task2.cpp -o task2
 
-mpisubmit.pl -p 10 -w 00:15 task2 -- test.ini
+rm PolusResults.csv
+printf "ProcNum,TotalTime,IterationNumber,CellsNumber,HighBorder,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,TimeSpent\n" > PolusResults.csv
 
-#for procNum in 10 20 40
-#do 
-#	mpisubmit.pl -p $procNum -w 00:15 main -- configs/config_128.ini
-#	mpisubmit.pl -p $procNum -w 00:15 main -- configs/config_128p.ini
-#	mpisubmit.pl -p $procNum -w 00:15 main -- configs/config_256.ini
-#	mpisubmit.pl -p $procNum -w 00:15 main -- configs/config_256p.ini
-#	mpisubmit.pl -p $procNum -w 00:15 main -- configs/config_512.ini
-#	mpisubmit.pl -p $procNum -w 00:15 main -- configs/config_512p.ini
-#done
+for procNum in 1 10 20 40
+do
+    for cellSize in 128 256 512
+    do 
+        for highBorder in 1.0 3.1415
+        do 
+            mpisubmit.pl -p $procNum -w 00:15 ../task2 -- $cellSize 0.025 20 $highBorder PolusResults.csv
+        done
+    done
+done
