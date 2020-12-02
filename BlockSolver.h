@@ -307,6 +307,7 @@ class BlockSolver {
     }
 
     public: void Init() {
+        #pragma omp parallel
         for (int x = 0; x < Mat(0).Size().x; x++) {
             for (int y = 0; y < Mat(0).Size().y; y++) {
                 for (int z = 0; z < Mat(0).Size().z; z++) {
@@ -327,6 +328,7 @@ class BlockSolver {
 
         RotateMatrixBuffers();
 
+        #pragma omp parallel
         for (int x = 0; x < Mat(0).Size().x; x++) {
             for (int y = 0; y < Mat(0).Size().y; y++) {
                 for (int z = 0; z < Mat(0).Size().z; z++) {
@@ -390,6 +392,7 @@ class BlockSolver {
     public: void Iterate() {                
         UpdateEdges();
 
+        #pragma omp parallel
         for (int x = 0; x < Mat(1).Size().x; x++) {
             for (int y = 0; y < Mat(1).Size().y; y++) {
                 for (int z = 0; z < Mat(1).Size().z; z++) {

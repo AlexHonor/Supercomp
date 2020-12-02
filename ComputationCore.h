@@ -178,15 +178,22 @@ class ComputationCore {
             }
         }
         
-        for (int x = 0; x < result.Size().x; x++) {
-            for (int y = 0; y < result.Size().y; y++) {
-                for (int z = 0; z < result.Size().z; z++) {
-                    //cout << result(x, y, z) << " ";
-                }
-            }
-        }    
+        stringstream ss;
+        ss << conf.cells_num << "-" << conf.time_step << ".bin";
+
+        dump_vector(result.data, ss.str().c_str());
 
         return result;
+    }
+
+    static void dump_vector(const std::vector<double> &v, const char* filename) {
+        std::ofstream out_file;
+        out_file.open(filename, std::ios::out | std::ios::binary);
+        if (!out_file) {
+            std::cerr << "can't open file " << filename << std::endl;
+            return;
+        }
+        out_file.write((char *) v.data(), v.size()*sizeof(double));
     }
 
     Vector3Int RankToCell(int rank) {
